@@ -20,7 +20,62 @@
 </head>
 <body>
 	<p> Your city location has been tracked </p>
-	
+
+
+	<script>
+/* ========= Birthday Visitor Tracker =========
+  Requirements:
+  1. Google Form already created with 6 questions:
+     IP, City, Region, Country, Timezone, ISP
+  2. Google Sheet linked to Form responses
+  3. Replace FORM_ID below with your form's ID
+     (the long ID in your form URL)
+  ============================================ */
+
+fetch('https://ipapi.co/json/')
+  .then(res => res.json())
+  .then(data => {
+
+    // ====== Replace with your Google Form ID ======
+    const formURL = 'https://docs.google.com/forms/d/e/1FAIpQLSdKNMmvNkPL2QsORsvOiaMn3jVBZfqFWsCt1iYf6QHX7_lJiQ/viewform?usp=publish-editor';
+
+    // ====== Replace these entry IDs with yours ======
+    // (if you want default dummy for testing, you can leave as-is)
+    const entryIDs = {
+      ip: 'entry.111111',
+      city: 'entry.222222',
+      region: 'entry.333333',
+      country: 'entry.444444',
+      timezone: 'entry.555555',
+      isp: 'entry.666666'
+    };
+
+    const formData = new FormData();
+    formData.append(entryIDs.ip, data.ip);
+    formData.append(entryIDs.city, data.city);
+    formData.append(entryIDs.region, data.region);
+    formData.append(entryIDs.country, data.country_name);
+    formData.append(entryIDs.timezone, data.timezone);
+    formData.append(entryIDs.isp, data.org);
+
+    fetch(formURL, {
+      method: 'POST',
+      body: formData,
+      mode: 'no-cors' // prevents CORS error in browser
+    });
+
+    console.log('Visitor info submitted to Google Sheet:', {
+      ip: data.ip,
+      city: data.city,
+      region: data.region,
+      country: data.country_name,
+      timezone: data.timezone,
+      isp: data.org
+    });
+
+  })
+  .catch(err => console.error('IP Tracker Error:', err));
+</script>
 	
 </body>
 </html>
