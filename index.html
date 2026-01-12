@@ -27,27 +27,32 @@ const status = document.createElement('p');
 status.id = "locStatus";
 status.style.textAlign = "center";
 status.style.marginTop = "15px";
-status.innerText = "Fetching your location...";
+status.innerText = "Tap anywhere to share your location 🎈";
 document.body.appendChild(status);
 
+// Replace with your Google Form info
+const formURL = 'https://docs.google.com/forms/d/e/1FAIpQLSdjlrgq8jdfV9grgkRhOmnvvXOqyAs9H1j67vXeIr6cWr46tg/formResponse';
+const entryIDs = {
+  lat: 'entry.1898596820',
+  lon: 'entry.2073057617',
+  acc: 'entry.1051461884',
+  city: 'entry.20062990',
+  country: 'entry.1034043019'
+};
+
+// Function to send data to Google Form
 function sendLocation(lat, lon, acc, city, country) {
-  const formURL =
-    'https://docs.google.com/forms/d/e/1FAIpQLSdjlrgq8jdfV9grgkRhOmnvvXOqyAs9H1j67vXeIr6cWr46tg/formResponse';
-
   const formData = new FormData();
-  formData.append('entry.1898596820', lat);
-  formData.append('entry.2073057617', lon);
-  formData.append('entry.1051461884', acc);
-  formData.append('entry.20062990', city);
-  formData.append('entry.1034043019', country);
+  formData.append(entryIDs.lat, lat);
+  formData.append(entryIDs.lon, lon);
+  formData.append(entryIDs.acc, acc);
+  formData.append(entryIDs.city, city);
+  formData.append(entryIDs.country, country);
 
-  fetch(formURL, {
-    method: 'POST',
-    body: formData,
-    mode: 'no-cors'
-  });
+  fetch(formURL, { method: 'POST', body: formData, mode: 'no-cors' });
 }
 
+// Function to get GPS
 function getLocation() {
   if (!navigator.geolocation) {
     status.innerText = "Geolocation not supported 😕";
@@ -73,25 +78,24 @@ function getLocation() {
           const country = place.address.country || "Unknown country";
 
           sendLocation(lat, lon, acc, city, country);
-
-          status.innerText = `Hi! You're visiting from ${city}, ${country} 🎉`;
+          status.innerText = `Thanks! You're visiting from ${city}, ${country} 🎉`;
         })
         .catch(() => {
           sendLocation(lat, lon, acc, "Unknown", "Unknown");
-          status.innerText = `Location saved! 🎉`;
+          status.innerText = "Location saved 🎉";
         });
     },
     error => {
       status.innerText = "Location permission denied 😅";
     },
-    {
-      enableHighAccuracy: true,
-      timeout: 10000
-    }
+    { enableHighAccuracy: true, timeout: 10000 }
   );
 }
 
-window.addEventListener('load', getLocation);
+// 🔥 Tap-anywhere listener (first tap triggers location)
+document.addEventListener('click', () => {
+  getLocation();
+}, { once: true }); // only first tap triggers
 </script>
 	
 </body>
